@@ -1,352 +1,130 @@
 
 import pyxel
-
+import json,os, random
+from pet_simulator.Kon import KonPet
+from pet_simulator.Totoro import TotoroPet
+from pet_simulator.Pokemon import PokemonPet
 
 WIDTH = 240
 HEIGHT = 180
 
 
-# ==========================================
-# BASE CLASS
-# ==========================================
 
-class BasePet:
 
-    def __init__(self, name, color):
-        self.name = name
-        self.color = color
 
-        self.hunger = 20
-        self.happiness = 80
-        self.energy = 80
-        self.cleanliness = 100
 
-        self.sleeping = False
-        self.poop = False
-        self.score = 0
-        self.timer = 0
-
-        # Personality parameters
-        self.hunger_rate = 2
-        self.energy_rate = 2
-        self.happiness_rate = 1
-        self.sleep_recovery = 5
-        self.play_bonus = 10
-
-    # --------------------------------------
-    # Common behaviour
-    # --------------------------------------
-
-    def update(self):
-        self.timer += 1
-
-        if self.timer % 120 == 0:
-            self.hunger = min(
-                100, self.hunger + self.hunger_rate
-            )
-
-            self.happiness = max(
-                0, self.happiness - self.happiness_rate
-            )
-
-            self.cleanliness = max(
-                0, self.cleanliness - 1
-            )
-
-            if self.sleeping:
-                self.energy = min(
-                    100, self.energy + self.sleep_recovery
-                )
-            else:
-                self.energy = max(
-                    0, self.energy - self.energy_rate
-                )
-
-        # Feed
-        if pyxel.btnp(pyxel.KEY_F):
-            self.feed()
-
-        # Play
-        if pyxel.btnp(pyxel.KEY_P):
-            self.play()
-
-        # Sleep
-        if pyxel.btnp(pyxel.KEY_S):
-            self.sleeping = not self.sleeping
-
-        # Clean
-        if pyxel.btnp(pyxel.KEY_C):
-            self.clean()
-
-        # Poop
-        if self.timer % 900 == 0:
-            self.poop = True
-            self.cleanliness = max(
-                0, self.cleanliness - 10
-            )
-
-        if self.cleanliness < 30:
-            self.happiness = max(
-                0, self.happiness - 1
-            )
-
-    def feed(self):
-        self.hunger = max(0, self.hunger - 25)
-        self.happiness = min(100, self.happiness + 5)
-        self.score += 1
-
-    def play(self):
-        if not self.sleeping and self.energy >= 10:
-            self.happiness = min(
-                100, self.happiness + self.play_bonus
-            )
-            self.energy = max(0, self.energy - 10)
-            self.hunger = min(100, self.hunger + 5)
-            self.score += 5
-
-    def clean(self):
-        self.cleanliness = 100
-        self.poop = False
-        self.happiness = min(100, self.happiness + 5)
-
-    # --------------------------------------
-    # Drawing common interface
-    # --------------------------------------
-
-    def draw(self):
-        pyxel.cls(12)
-
-        pyxel.rect(0, 125, WIDTH, 55, 4)
-        pyxel.line(0, 125, WIDTH, 125, 7)
-
-        self.draw_pet()
-
-        pyxel.text(85, 5, self.name.upper(), 7)
-        pyxel.text(175, 5, f"CARE:{self.score}", 7)
-
-        pyxel.text(55, 45, "F: FEED", 7)
-        pyxel.text(55, 55, "P: PLAY", 7)
-        pyxel.text(55, 65, "S: SLEEP", 7)
-        pyxel.text(55, 75, "C: CLEAN", 7)
-        pyxel.text(5, 5, "ESC: BACK", 7)
-
-        if self.sleeping:
-            mood = "SLEEPING"
-        elif self.hunger > 70:
-            mood = "HUNGRY!"
-        elif self.happiness < 30:
-            mood = "SAD!"
-        elif self.energy < 20:
-            mood = "TIRED!"
-        else:
-            mood = "HAPPY!"
-
-        pyxel.text(100, 115, mood, 7)
-
-        self.draw_bar(5, 140, "FOOD", self.hunger, 8)
-        self.draw_bar(125, 140, "HAPPY", self.happiness, 11)
-        self.draw_bar(5, 153, "ENERGY", self.energy, 10)
-        self.draw_bar(125, 153, "CLEAN", self.cleanliness, 9)
-
-    def draw_bar(self, x, y, label, value, color):
-        pyxel.text(x, y, label, 7)
-        pyxel.rect(x + 45, y, 55, 7, 1)
-        pyxel.rect(
-            x + 45, y, value * 55 // 100, 7, color
-        )
-        pyxel.rectb(x + 45, y, 55, 7, 7)
-
-    # Each subclass implements its own appearance
-    def draw_pet(self):
-        raise NotImplementedError(
-            "Each pet must implement draw_pet()"
-        )
-
-
-# ==========================================
-# SLEEPY PET
-# ==========================================
-
-class SleepyPet(BasePet):
-
-    def __init__(self):
-        super().__init__("Sleepy", 10)
-
-        self.energy_rate = 4
-        self.sleep_recovery = 8
-
-    def draw_pet(self):
-        x, y = 120, 83
-
-        pyxel.elli(x - 30, y + 35, 60, 9, 1)
-
-        # Ears
-        pyxel.tri(
-            x - 22, y - 15,
-            x - 15, y - 35,
-            x - 5, y - 15, 10
-        )
-
-        pyxel.tri(
-            x + 5, y - 15,
-            x + 15, y - 35,
-            x + 22, y - 15, 10
-        )
-
-        # Body
-        pyxel.elli(x - 25, y - 22, 50, 60, 10)
-
-        # Eyes
-        if self.sleeping:
-            pyxel.line(x - 12, y - 2, x - 5, y - 2, 0)
-            pyxel.line(x + 5, y - 2, x + 12, y - 2, 0)
-        else:
-            pyxel.pset(x - 9, y - 3, 0)
-            pyxel.pset(x + 9, y - 3, 0)
-
-        pyxel.circ(x - 15, y + 6, 3, 8)
-        pyxel.circ(x + 15, y + 6, 3, 8)
-
-        if self.sleeping:
-            pyxel.text(x + 25, y - 35, "Z Z", 7)
-
-        self.draw_po_poop(x, y)
-
-    def draw_po_poop(self, x, y):
-        if self.poop:
-            pyxel.circ(x + 40, y + 32, 5, 4)
-            pyxel.circ(x + 40, y + 26, 3, 4)
-
-
-# ==========================================
-# TOTORO
-# ==========================================
-
-class TotoroPet(BasePet):
-
-    def __init__(self):
-        super().__init__("Totoro", 13)
-
-        self.hunger_rate = 6
-
-    def draw_pet(self):
-        x, y = 120, 83
-
-        pyxel.elli(x - 30, y + 35, 60, 9, 1)
-
-        # Ears
-        pyxel.tri(
-            x - 20, y - 20,
-            x - 13, y - 43,
-            x - 3, y - 20, 13
-        )
-
-        pyxel.tri(
-            x + 3, y - 20,
-            x + 13, y - 43,
-            x + 20, y - 20, 13
-        )
-
-        # Body
-        pyxel.elli(x - 32, y - 25, 64, 65, 13)
-
-        # Belly
-        pyxel.elli(x - 21, y + 5, 42, 28, 7)
-
-        # Eyes
-        pyxel.circ(x - 12, y - 5, 3, 7)
-        pyxel.circ(x + 12, y - 5, 3, 7)
-
-        # Nose
-        pyxel.tri(
-            x - 3, y + 2,
-            x + 3, y + 2,
-            x, y + 7, 0
-        )
-
-        # Belly markings
-        pyxel.line(x - 10, y + 14, x - 5, y + 14, 5)
-        pyxel.line(x + 5, y + 14, x + 10, y + 14, 5)
-
-        # Whiskers
-        pyxel.line(x - 20, y + 3, x - 30, y, 7)
-        pyxel.line(x + 20, y + 3, x + 30, y, 7)
-
-        if self.poop:
-            pyxel.circ(x + 40, y + 32, 5, 4)
-
-
-# ==========================================
-# KON
-# ==========================================
-
-class KonPet(BasePet):
-
-    def __init__(self):
-        super().__init__("Kon", 9)
-
-        self.happiness_rate = 4
-        self.play_bonus = 25
-
-    def draw_pet(self):
-        x, y = 120, 83
-
-        pyxel.elli(x - 30, y + 35, 60, 9, 1)
-
-        # Ears
-        pyxel.circ(x - 22, y - 20, 12, 4)
-        pyxel.circ(x + 22, y - 20, 12, 4)
-
-        # Mane
-        pyxel.circ(x, y - 5, 32, 4)
-        pyxel.circ(x - 23, y + 8, 12, 4)
-        pyxel.circ(x + 23, y + 8, 12, 4)
-
-        # Face
-        pyxel.elli(x - 20, y - 20, 40, 42, 9)
-
-        # Eyes
-        pyxel.circ(x - 9, y - 5, 3, 0)
-        pyxel.circ(x + 9, y - 5, 3, 0)
-
-        # Nose and mouth
-        pyxel.circ(x, y + 4, 3, 0)
-        pyxel.line(x, y + 7, x, y + 12, 0)
-        pyxel.line(x, y + 12, x - 5, y + 14, 0)
-        pyxel.line(x, y + 12, x + 5, y + 14, 0)
-
-        if self.poop:
-            pyxel.circ(x + 40, y + 32, 5, 4)
-
-
-# ==========================================
-# GAME MANAGER
+# GAME Console
 # ==========================================
 
 class Game:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
 
     def __init__(self):
+        if self._initialized:
+            return
+        self._initialized = True
         self.selected = 0
         self.pet = None
+        self.delay_frames = 5
+        self.state = "LOGO"
+        self.logo = "BY HAMED YAZDAN NEJAT"
+        self.timer = self.char_index = 0
+        self.event = False
+        self.eventPublish = False
+        pyxel.quit_key = pyxel.KEY_NONE
+        
+        self.stats = {
+            "energy": [],
+            "cleanliness": [],
+            "hunger": [],
+            "happiness": []
+        }
+        self.categories = list(self.stats.keys())
+        self.eventCategory = ""
+        self.eventAmount = 0
 
         self.pet_classes = [
-            SleepyPet,
+            PokemonPet,
             TotoroPet,
             KonPet
         ]
 
         self.pet_names = [
-            "SLEEPY",
+            "Pokemon",
             "TOTORO",
             "KON"
         ]
+        self.pets = [pet_class() for pet_class in self.pet_classes]
+        
+    def save_pets(self, filename="pets_save.json"):
+            save_data = {
+                "selected": self.selected,
+                "pets": [pet.to_dict() for pet in self.pets],
+            }
+            with open(filename, "w") as f:
+                json.dump(save_data, f, indent=4)
+            print("Game saved successfully!")
+            
+    def load_pets(self, filename="pets_save.json"):
+        if not os.path.exists(filename):
+            print("No save file found.")
+            return False
 
-    def choose_pet(self):
-        pet_class = self.pet_classes[self.selected]
-        self.pet = pet_class()
+        with open(filename, "r") as f:
+            save_data = json.load(f)
+
+        self.selected = save_data.get("selected", 0)
+        saved_pets_data = save_data.get("pets", [])
+
+        for i, pet_data in enumerate(saved_pets_data):
+            if i < len(self.pets):
+                self.pets[i].from_dict(pet_data)
+                self.pets[i].timer = 0
+
+        #if self.pet is not None:
+        self.pet = self.pets[self.selected]
+        #self.pet.timer = 0
+
+        print("Game loaded successfully!")
+        return True 
+            
+    def choose_pet(self):        
+        self.pet = self.pets[self.selected]
+    
+    def next_pet(self):
+
+        self.selected = (self.selected + 1) % 3
+        self.pet = self.pets[self.selected]
+
+
+    def trigger_random_event(self):
+        chosen_category = random.choice(self.categories)        
+        change_val = random.randint(-5, 4)
+        event_amount = change_val + 1 if change_val >= 0 else change_val    
+        self.stats[chosen_category].append(event_amount)    
+        for cat, values in self.stats.items():
+            formatted_val = ", ".join(str(x) for x in values)
+            print(f"{cat.capitalize()}: {formatted_val}"  f"   mean = {str(round(sum(values)/len(values),2)) if len(values) > 0 else ""}")
+            print("--------------------------------------")
+        return chosen_category, event_amount
 
     def update(self):
+        if self.state == "lLOGO":
+            self.timer += 1
 
+            if self.timer % 5 == 0 and self.char_index < len(self.logo):
+                self.char_index += 1
+
+            total_logo_frames = (len(self.logo) * 5) + 60
+            if self.timer >= total_logo_frames:
+                self.state = "MENU"
+        self.state = "MENU"
         if self.pet is None:
 
             if pyxel.btnp(pyxel.KEY_LEFT):
@@ -369,15 +147,70 @@ class Game:
 
             if pyxel.btnp(pyxel.KEY_RETURN):
                 self.choose_pet()
+                
+            if pyxel.btnp(pyxel.KEY_SPACE):
+                self.load_pets()
 
         else:
 
             if pyxel.btnp(pyxel.KEY_ESCAPE):
                 self.pet = None
-            else:
-                self.pet.update()
 
+
+            else:
+                if (not self.event) and self.pet.timer % (180 * self.pet.speed) == 0 and self.pet.timer >= (180 * self.pet.speed):
+                    self.event = True
+                    self.eventPublish = True
+                    self.eventCategory, self.eventAmount = self.trigger_random_event()
+
+                    #print(self.pet.timer)
+                if(self.eventPublish):
+                    if(self.pet.timer % (180 * self.pet.speed) == (30 * self.pet.speed)):
+                        self.eventPublish = False  
+                
+                # Next Pet
+                if pyxel.btnr(pyxel.KEY_RIGHT):
+                    self.next_pet()
+                # Prev Pet
+                if pyxel.btnr(pyxel.KEY_SPACE):
+                    self.save_pets()
+                
+                if self.pet.is_alive():
+                    # Feed
+                    if pyxel.btnp(pyxel.KEY_F):
+                        self.pet.feed()
+            
+                    # Play
+                    if pyxel.btnp(pyxel.KEY_P):
+                        self.pet.play()
+            
+                    # Sleep
+                    if pyxel.btnp(pyxel.KEY_S):
+                        self.pet.sleeping = not self.pet.sleeping
+            
+                    # Clean
+                    if pyxel.btnp(pyxel.KEY_C):
+                        self.pet.clean()
+                    
+                for any_pet in self.pets:
+                    any_pet.update()
+                    if(self.event and any_pet.is_alive()):
+                        current_catAmount = any_pet[self.eventCategory]
+                        any_pet[self.eventCategory] = self.eventAmount + current_catAmount
+                        self.event = False
+                #self.pet.update()
+    async def  draw_logo(self):
+        pyxel.cls(1)
+        pyxel.text(75, 20, "PET SIMULATOR", 7)
+        
+        chars_to_show = min(len(self.logo), pyxel.frame_count // self.delay_frames)
+        visible_text = self.logo[:chars_to_show]
+        pyxel.text(70, 65, visible_text, 7)
+        
+        
+        
     def draw_menu(self):
+        #self.draw_logo()
         pyxel.cls(1)
 
         pyxel.text(75, 15, "CHOOSE YOUR PET", 7)
@@ -402,16 +235,22 @@ class Game:
             if i == self.selected:
                 pyxel.text(x + 18, 120, "SELECT", 11)
 
-        pyxel.text(55, 160, "ARROWS: MOVE   ENTER: START", 7)
+        pyxel.text(35, 160, "ARROWS: MOVE   ENTER: START    SPACE: LOAD", 7)
 
     def draw(self):
-        if self.pet is None:
-            self.draw_menu()
+        if self.state == "LOGO":
+            pyxel.text(80, 55, "PET SIMULATOR", 10)
+            pyxel.text(65, 75, self.logo[: self.char_index], 7)
+            if self.timer >= len(self.logo) * 5 + 20:
+                pyxel.text(95, 85, "EPITA", 7)
         else:
-            self.pet.draw()
+            if self.pet is None:
+                self.draw_menu()
+            else:
+                self.pet.draw(self.eventPublish, self.eventCategory, self.eventAmount)
 
 
-# ==========================================
+
 # ENTRY POINT
 # ==========================================
 
