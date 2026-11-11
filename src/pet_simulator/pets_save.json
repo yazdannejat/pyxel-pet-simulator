@@ -10,7 +10,7 @@
             "sleeping": false,
             "poop": false,
             "score": 0,
-            "timer": 370
+            "timer": 10
         },
         {
             "name": "Totoro",
@@ -21,7 +21,7 @@
             "sleeping": false,
             "poop": true,
             "score": 0,
-            "timer": 370
+            "timer": 10
         },
         {
             "name": "Kon",
@@ -32,7 +32,7 @@
             "sleeping": false,
             "poop": false,
             "score": 0,
-            "timer": 370
+            "timer": 10
         }
     ]
 }

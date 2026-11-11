@@ -115,16 +115,15 @@ class Game:
         return chosen_category, event_amount
 
     def update(self):
-        if self.state == "lLOGO":
-            self.timer += 1
+        if self.state == "LOGO":
+            self.timer += 2
 
             if self.timer % 5 == 0 and self.char_index < len(self.logo):
-                self.char_index += 1
+                self.char_index += 3
 
-            total_logo_frames = (len(self.logo) * 5) + 60
+            total_logo_frames = (len(self.logo) * 5) + 90
             if self.timer >= total_logo_frames:
                 self.state = "MENU"
-        self.state = "MENU"
         if self.pet is None:
 
             if pyxel.btnp(pyxel.KEY_LEFT):
