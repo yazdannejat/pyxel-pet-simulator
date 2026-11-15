@@ -54,3 +54,16 @@ Dependencies are managed by uv using `pyproject.toml` and `uv.lock`.
 ## License
 
 MIT
+
+## Quick Run (Without Installing)
+
+From inside the extracted `pyxel-pet-simulator` folder, run the built wheel directly using `uvx`:
+
+```bash
+uvx --from ./dist/pyxel_pet_simulator-0.1.0-py3-none-any.whl pet-simulator
+
+
+## or Install With pip
+```bash
+pip install ./dist/pyxel_pet_simulator-0.1.0-py3-none-any.whl
+pet-simulator

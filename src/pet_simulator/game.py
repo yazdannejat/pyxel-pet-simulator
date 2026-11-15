@@ -18,7 +18,8 @@ HEIGHT = 180
 
 class Game:
     _instance = None
-
+    
+    """make class singleton"""
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
@@ -37,11 +38,12 @@ class Game:
         self.timer = self.char_index = 0
         self.event = False
         self.eventPublish = False
+        self.cooldown = 0
         pyxel.quit_key = pyxel.KEY_NONE
         
         self.stats = {
             "energy": [],
-            "cleanliness": [],
+            "health": [],
             "hunger": [],
             "happiness": []
         }
@@ -98,8 +100,11 @@ class Game:
         self.pet = self.pets[self.selected]
     
     def next_pet(self):
-
         self.selected = (self.selected + 1) % 3
+        self.pet = self.pets[self.selected]
+        
+    def prev_pet(self):
+        self.selected = (self.selected - 1) % 3
         self.pet = self.pets[self.selected]
 
 
@@ -112,6 +117,8 @@ class Game:
             formatted_val = ", ".join(str(x) for x in values)
             print(f"{cat.capitalize()}: {formatted_val}"  f"   mean = {str(round(sum(values)/len(values),2)) if len(values) > 0 else ""}")
             print("--------------------------------------")
+        for pet in self.pets:
+            print(f"{pet.name} Careness is: {pet.score}")
         return chosen_category, event_amount
 
     def update(self):
@@ -124,6 +131,9 @@ class Game:
             total_logo_frames = (len(self.logo) * 5) + 90
             if self.timer >= total_logo_frames:
                 self.state = "MENU"
+        if(self.cooldown > 0):
+            self.cooldown -= 1
+            return
         if self.pet is None:
 
             if pyxel.btnp(pyxel.KEY_LEFT):
@@ -149,6 +159,7 @@ class Game:
                 
             if pyxel.btnp(pyxel.KEY_SPACE):
                 self.load_pets()
+                self.cooldown = 15
 
         else:
 
@@ -171,6 +182,9 @@ class Game:
                 if pyxel.btnr(pyxel.KEY_RIGHT):
                     self.next_pet()
                 # Prev Pet
+                if pyxel.btnr(pyxel.KEY_LEFT):
+                    self.prev_pet()
+                #Save Pets
                 if pyxel.btnr(pyxel.KEY_SPACE):
                     self.save_pets()
                 

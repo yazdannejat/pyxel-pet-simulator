@@ -1,38 +1,38 @@
 {
-    "selected": 0,
+    "selected": 2,
     "pets": [
         {
             "name": "Pokemon",
-            "hunger": 26,
-            "happiness": 77,
-            "energy": 68,
-            "cleanliness": 90,
-            "sleeping": false,
+            "hunger": 8,
+            "happiness": 97,
+            "energy": 100,
+            "health": 79,
+            "sleeping": true,
             "poop": false,
-            "score": 0,
-            "timer": 10
+            "score": 35,
+            "timer": 2
         },
         {
             "name": "Totoro",
-            "hunger": 38,
-            "happiness": 77,
-            "energy": 74,
-            "cleanliness": 84,
+            "hunger": 18,
+            "happiness": 99,
+            "energy": 92,
+            "health": 98,
             "sleeping": false,
-            "poop": true,
-            "score": 0,
-            "timer": 10
+            "poop": false,
+            "score": 30,
+            "timer": 2
         },
         {
             "name": "Kon",
-            "hunger": 26,
-            "happiness": 68,
-            "energy": 74,
-            "cleanliness": 94,
-            "sleeping": false,
+            "hunger": 14,
+            "happiness": 92,
+            "energy": 86,
+            "health": 82,
+            "sleeping": true,
             "poop": false,
-            "score": 0,
-            "timer": 10
+            "score": 120,
+            "timer": 2
         }
     ]
 }

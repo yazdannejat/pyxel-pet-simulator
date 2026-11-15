@@ -1,5 +1,6 @@
 import pyxel
 import math
+"""..."""
 WIDTH = 240
 HEIGHT = 180
 class BasePet:
@@ -12,8 +13,8 @@ class BasePet:
         self.hunger = 20
         self.happiness = 80
         self.energy = 80
-        self.cleanliness = 100
-        self.speed = 2
+        self.health = 100
+        self.speed = 1
 
         self.sleeping = False
         self.poop = False
@@ -32,21 +33,22 @@ class BasePet:
         match key:
             case "energy":
                 return self.energy
-            case "cleanliness":
-                return self.cleanliness
+            case "health":
+                return self.health
             case "hunger":
                 return self.hunger
             case "happiness":
                 return self.happiness
             case _:
-                raise("Unknown category")  
+                print("key:" , key)
+                raise(f"Unknown category: {key}")  
 
     def __setitem__(self, key, value):
         match key:
             case "energy":
                 self.energy = max(0, min(100, value))                
-            case "cleanliness":
-                self.cleanliness = max(0, min(100, value))
+            case "health":
+                self.health = max(0, min(100, value))
             case "hunger":
                 self.hunger = max(0, min(100, value))
             case "happiness":
@@ -59,12 +61,12 @@ class BasePet:
         if(self.state == "dead"):
             return
         self.timer += (self.speed)
-        if(self.hunger == 100 or self.happiness == 0 or self.energy == 0 or self.cleanliness == 0):
+        if(self.hunger == 100 or self.happiness == 0 or self.energy == 0 or self.health == 0):
             self.state = "dead"
             self.hunger = 100
             self.happiness = 0 
             self.energy = 0
-            self.cleanliness = 0
+            self.health = 0
             self.sleeping = True
             return
 
@@ -79,8 +81,8 @@ class BasePet:
                 0, self.happiness - self.happiness_rate
             )
 
-            self.cleanliness = max(
-                0, self.cleanliness - 2
+            self.health = max(
+                0, self.health - 2
             )
 
             if self.sleeping:
@@ -97,16 +99,16 @@ class BasePet:
         # Poop
         if self.timer % int(1800/self.hunger_rate) == 0:
             if(self.poop):
-                self.cleanliness = max(
-                    0, self.cleanliness - 20
+                self.health = max(
+                    0, self.health - 20
                     )
             else:
                 self.poop = True
-                self.cleanliness = max(
-                    0, self.cleanliness - 10
+                self.health = max(
+                    0, self.health - 10
                 )
 
-        if self.cleanliness < 30:
+        if self.health < 30:
             self.happiness = max(
                 0, self.happiness - 10
             )
@@ -127,12 +129,12 @@ class BasePet:
             self.score += 5
 
     def clean(self):
-        self.cleanliness = 100
+        self.health = 100
         self.poop = False
         self.happiness = min(100, self.happiness + 5)
 
     def draw_Report(self):
-        report = f"HUNGER = {self.hunger} Energy = {self.energy} Cleanliness = {self.cleanliness} Sleeping = {self.sleeping}"
+        report = f"HUNGER = {self.hunger} Energy = {self.energy} health = {self.health} Sleeping = {self.sleeping}"
     
     def draw_random_event(self, x, y, amount, category, color = 10):
         points = [
@@ -157,6 +159,9 @@ class BasePet:
     def draw_pixel_arrow(self, x, y, color=7):
         pyxel.line(x, y + 2, x + 8, y + 2, color)
         pyxel.tri(x + 11, y + 2, x + 7, y, x + 7, y + 4, color)
+    def draw_left_pixel_arrow(self, x, y, color=7):
+        pyxel.line(x + 8, y + 2, x + 2, y + 2, color)
+        pyxel.tri(x - 1, y + 2, x + 3, y, x + 3, y + 4, color)
         
     def draw_cross(self, x, y, color=8):
         for offset in range(4):
@@ -173,8 +178,11 @@ class BasePet:
         pyxel.rect(0, 125, WIDTH, 55, 4)
         
         pyxel.line(0, 125, WIDTH, 125, 7)
+        
         pyxel.text(205, 80, "NEXT PET", 7)
         self.draw_pixel_arrow(225,70,7)
+        pyxel.text(5, 80, "PREV PET", 7)
+        self.draw_left_pixel_arrow(5,70,7)
 
         self.draw_pet()
         
@@ -212,9 +220,9 @@ class BasePet:
         pyxel.text(100, 115, mood, 7)
 
         self.draw_bar(5, 140, "FOOD", 100 - self.hunger, 8)
-        self.draw_bar(125, 140, "HAPPY", self.happiness, 11)
+        self.draw_bar(125, 140, "HAPPYNESS", self.happiness, 11)
         self.draw_bar(5, 153, "ENERGY", self.energy, 10)
-        self.draw_bar(125, 153, "CLEAN", self.cleanliness, 9)
+        self.draw_bar(125, 153, "HEALTH", self.health, 9)
 
     def draw_bar(self, x, y, label, value, color):
         pyxel.text(x, y, label, 7)
@@ -230,7 +238,7 @@ class BasePet:
             "hunger": self.hunger,
             "happiness": self.happiness,
             "energy": self.energy,
-            "cleanliness": self.cleanliness,
+            "health": self.health,
             "sleeping": self.sleeping,
             "poop": self.poop,
             "score": self.score,
@@ -241,7 +249,7 @@ class BasePet:
         self.hunger = data.get("hunger", self.hunger)
         self.happiness = data.get("happiness", self.happiness)
         self.energy = data.get("energy", self.energy)
-        self.cleanliness = data.get("cleanliness", self.cleanliness)
+        self.health = data.get("health", self.health)
         self.sleeping = data.get("sleeping", self.sleeping)
         self.poop = data.get("poop", self.poop)
         self.score = data.get("score", self.score)
