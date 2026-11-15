@@ -63,7 +63,7 @@ From inside the extracted `pyxel-pet-simulator` folder, run the built wheel dire
 uvx --from ./dist/pyxel_pet_simulator-0.1.0-py3-none-any.whl pet-simulator
 
 
-## or Install With pip
-```bash
+# or Install With pip
+
 pip install ./dist/pyxel_pet_simulator-0.1.0-py3-none-any.whl
 pet-simulator
